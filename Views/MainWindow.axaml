@@ -1,0 +1,82 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:NoisePower.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="NoisePower.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="NoisePower"
+        SizeToContent="WidthAndHeight"
+        Background="#0c0d10"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel/>
+  </Design.DataContext>
+
+  <Grid HorizontalAlignment="Center" VerticalAlignment="Center" ShowGridLines="True">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"></RowDefinition>
+      <RowDefinition Height="Auto"></RowDefinition>
+      <RowDefinition Height="Auto"></RowDefinition>
+      <RowDefinition Height="Auto"></RowDefinition>
+      <RowDefinition Height="Auto"></RowDefinition>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="Auto"></ColumnDefinition>
+      <ColumnDefinition Width="Auto"></ColumnDefinition>
+    </Grid.ColumnDefinitions>
+
+    
+    
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" ShowGridLines="False" Grid.Column="0" Grid.Row="1" Margin="10">
+
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"></RowDefinition>
+        <RowDefinition Height="Auto"></RowDefinition>
+        <RowDefinition Height="Auto"></RowDefinition>
+        <RowDefinition Height="Auto"></RowDefinition>
+      </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"></ColumnDefinition>
+      </Grid.ColumnDefinitions>
+
+      <CheckBox Grid.Row="0" Content="Рваное аудио"></CheckBox>
+    </Grid>
+
+    
+    
+    <TextBlock Grid.Row="0" Grid.Column="1" Padding="20"
+               HorizontalAlignment="Center" Text="{Binding IsVACInstalled}" Name="mainText"></TextBlock>
+
+    <ListBox IsVisible="{Binding VACInstallBool}" SelectionChanged="ShowToggle" Grid.Row="1" Grid.Column="1" CornerRadius="7" Name="list" Margin="30,0,30,10">
+    </ListBox>
+
+    <Button Grid.Row="1" Grid.Column="1" Margin="0,0,0,20" HorizontalAlignment="Center" Background="#3a71c1" Click="OnInstallClick" IsVisible="{Binding !VACInstallBool}" >Установить Virtual Audio Cable</Button>
+
+    <ToggleSwitch Margin="10,0,10,10" HorizontalAlignment="Center" Grid.Column="1"
+                    Name="power"
+                    Grid.Row="3" Checked="EnableRecordToggle" Unchecked="DisableRecordToggle"
+                    OffContent="Включить шакал" OnContent="Выключить шакал"></ToggleSwitch>
+
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" ShowGridLines="False" Grid.Row="4" Grid.Column="1">
+
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"></RowDefinition>
+      </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"></ColumnDefinition>
+        <ColumnDefinition Width="Auto"></ColumnDefinition>
+        <ColumnDefinition Width="Auto"></ColumnDefinition>
+      </Grid.ColumnDefinitions>
+
+      <Button Grid.Column="1" Margin="10,0,10,20" HorizontalAlignment="Center" Click="OnExitClick" >Выйти</Button>
+      <Button Grid.Column="0" Margin="20,0,0,20" HorizontalAlignment="Center"  Click="OnHideClick" IsVisible="{Binding VACInstallBool}">Свернуть в трей</Button>
+      <Button Grid.Column="2" Margin="0,0,20,20" HorizontalAlignment="Center"  Click="OnUpdateClick" IsVisible="{Binding VACInstallBool}">Обновить устройства</Button>
+    </Grid>
+
+  </Grid>
+</Window>
