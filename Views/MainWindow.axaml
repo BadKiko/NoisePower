@@ -17,24 +17,53 @@
     <vm:MainWindowViewModel/>
   </Design.DataContext>
 
-  <Grid HorizontalAlignment="Center" VerticalAlignment="Center" ShowGridLines="True">
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"></RowDefinition>
-      <RowDefinition Height="Auto"></RowDefinition>
-      <RowDefinition Height="Auto"></RowDefinition>
-      <RowDefinition Height="Auto"></RowDefinition>
-      <RowDefinition Height="Auto"></RowDefinition>
-    </Grid.RowDefinitions>
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="Auto"></ColumnDefinition>
-      <ColumnDefinition Width="Auto"></ColumnDefinition>
-    </Grid.ColumnDefinitions>
+  <SplitView IsPaneOpen="False"
+             DisplayMode="CompactOverlay"
+             UseLightDismissOverlayMode="True"
+             CompactPaneLength="0"
+             OpenPaneLength="200"
+             PaneBackground="#0A0A0C"
+             PaneClosing="OnOptionsHide"
+             Name="mainSplit">
 
-    
-    
-    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" ShowGridLines="False" Grid.Column="0" Grid.Row="1" Margin="10">
+    <SplitView.Pane>
+      <Grid HorizontalAlignment="Center" VerticalAlignment="Top" ShowGridLines="False" Grid.Column="0" Grid.Row="1" Margin="10">
 
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"></RowDefinition>
+          <RowDefinition Height="Auto"></RowDefinition>
+          <RowDefinition Height="Auto"></RowDefinition>
+          <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Text="Настройки" Name="optionsText" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Thin" FontSize="18" Margin="15" IsVisible="False"></TextBlock>
+
+        <Button Height="50" Width="50" Click="OnOptionsClick" Name="mainOptions" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Background="Transparent">
+          <Image Source="/Assets/options.png" />
+        </Button>
+
+        <ItemsControl Grid.Row="1">
+          <CheckBox Name="check0" IsVisible="False" Content="Рваное аудио"></CheckBox>
+          <CheckBox Name="check1" IsVisible="False" Content="Эффект попкорна"></CheckBox>
+          <CheckBox Name="check2" IsVisible="False" Content="Эффект робота"></CheckBox>
+          <CheckBox Name="check3" IsVisible="False" Content="Звук трансформатора"></CheckBox>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <CheckBox Content="{Binding Description}"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Grid>
+    </SplitView.Pane>
+
+
+
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" ShowGridLines="False">
       <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"></RowDefinition>
         <RowDefinition Height="Auto"></RowDefinition>
         <RowDefinition Height="Auto"></RowDefinition>
         <RowDefinition Height="Auto"></RowDefinition>
@@ -44,39 +73,41 @@
         <ColumnDefinition Width="Auto"></ColumnDefinition>
       </Grid.ColumnDefinitions>
 
-      <CheckBox Grid.Row="0" Content="Рваное аудио"></CheckBox>
+
+
+
+
+
+
+      <TextBlock Grid.Row="0" Grid.Column="1" Padding="20"
+                 HorizontalAlignment="Center" Text="{Binding IsVACInstalled}" Name="mainText"></TextBlock>
+
+      <ListBox IsVisible="{Binding VACInstallBool}" SelectionChanged="ShowToggle" Grid.Row="1" Grid.Column="1" CornerRadius="7" Name="list" Margin="30,0,30,10">
+      </ListBox>
+
+      <Button Grid.Row="1" Grid.Column="1" Margin="0,0,0,20" HorizontalAlignment="Center" Background="#3a71c1" Click="OnInstallClick" IsVisible="{Binding !VACInstallBool}" >Установить Virtual Audio Cable</Button>
+
+      <ToggleSwitch Margin="10,0,10,10" HorizontalAlignment="Center" Grid.Column="1"
+                      Name="power"
+                      Grid.Row="3" Checked="EnableRecordToggle" Unchecked="DisableRecordToggle"
+                      OffContent="Включить шакал" OnContent="Выключить шакал"></ToggleSwitch>
+
+      <Grid HorizontalAlignment="Center" VerticalAlignment="Center" ShowGridLines="False" Grid.Row="4" Grid.Column="1">
+
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"></ColumnDefinition>
+          <ColumnDefinition Width="Auto"></ColumnDefinition>
+          <ColumnDefinition Width="Auto"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+
+        <Button Grid.Column="1" Margin="10,0,10,20" HorizontalAlignment="Center" Click="OnExitClick" >Выйти</Button>
+        <Button Grid.Column="0" Margin="20,0,0,20" HorizontalAlignment="Center"  Click="OnHideClick" IsVisible="{Binding VACInstallBool}">Свернуть в трей</Button>
+        <Button Grid.Column="2" Margin="0,0,20,20" HorizontalAlignment="Center"  Click="OnUpdateClick" IsVisible="{Binding VACInstallBool}">Обновить устройства</Button>
+      </Grid>
+
     </Grid>
-
-    
-    
-    <TextBlock Grid.Row="0" Grid.Column="1" Padding="20"
-               HorizontalAlignment="Center" Text="{Binding IsVACInstalled}" Name="mainText"></TextBlock>
-
-    <ListBox IsVisible="{Binding VACInstallBool}" SelectionChanged="ShowToggle" Grid.Row="1" Grid.Column="1" CornerRadius="7" Name="list" Margin="30,0,30,10">
-    </ListBox>
-
-    <Button Grid.Row="1" Grid.Column="1" Margin="0,0,0,20" HorizontalAlignment="Center" Background="#3a71c1" Click="OnInstallClick" IsVisible="{Binding !VACInstallBool}" >Установить Virtual Audio Cable</Button>
-
-    <ToggleSwitch Margin="10,0,10,10" HorizontalAlignment="Center" Grid.Column="1"
-                    Name="power"
-                    Grid.Row="3" Checked="EnableRecordToggle" Unchecked="DisableRecordToggle"
-                    OffContent="Включить шакал" OnContent="Выключить шакал"></ToggleSwitch>
-
-    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" ShowGridLines="False" Grid.Row="4" Grid.Column="1">
-
-      <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"></RowDefinition>
-      </Grid.RowDefinitions>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="Auto"></ColumnDefinition>
-        <ColumnDefinition Width="Auto"></ColumnDefinition>
-        <ColumnDefinition Width="Auto"></ColumnDefinition>
-      </Grid.ColumnDefinitions>
-
-      <Button Grid.Column="1" Margin="10,0,10,20" HorizontalAlignment="Center" Click="OnExitClick" >Выйти</Button>
-      <Button Grid.Column="0" Margin="20,0,0,20" HorizontalAlignment="Center"  Click="OnHideClick" IsVisible="{Binding VACInstallBool}">Свернуть в трей</Button>
-      <Button Grid.Column="2" Margin="0,0,20,20" HorizontalAlignment="Center"  Click="OnUpdateClick" IsVisible="{Binding VACInstallBool}">Обновить устройства</Button>
-    </Grid>
-
-  </Grid>
+  </SplitView>
 </Window>

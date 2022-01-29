@@ -9,5 +9,6 @@ namespace NoisePower.ViewModels
         public string IsVACInstalled => mainWindow.InstalledVACText;
 
         public bool VACInstallBool => mainWindow.IsVACInstalled;
+
     }
 }

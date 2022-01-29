@@ -43,8 +43,13 @@ namespace NoisePower.Views
         #region Variables
         private ToggleSwitch _toggleSwitch;
         private ListBox _listBox;
-        private TextBlock _mainText;
+        private TextBlock _mainText, _optionsText;
+        private SplitView _splitView;
+        private Button _options;
         private List<string> _deviceIDs = new List<string>();
+
+        private List<CheckBox> _checkBoxes = new List<CheckBox>();
+
         MMDeviceEnumerator enumerator = new MMDeviceEnumerator();
         WasapiCapture capture = new WasapiCapture();
         WasapiOut output = new WasapiOut();
@@ -74,6 +79,21 @@ namespace NoisePower.Views
             _toggleSwitch = this.FindControl<ToggleSwitch>("power");
             _listBox = this.FindControl<ListBox>("list");
             _mainText = this.FindControl<TextBlock>("mainText");
+            _splitView = this.FindControl<SplitView>("mainSplit");
+            _options = this.FindControl<Button>("mainOptions");
+            _optionsText = this.FindControl<TextBlock>("optionsText");
+            _checkBoxes.Add(this.FindControl<CheckBox>("check0"));
+            _checkBoxes.Add(this.FindControl<CheckBox>("check1"));
+            _checkBoxes.Add(this.FindControl<CheckBox>("check2"));
+            _checkBoxes.Add(this.FindControl<CheckBox>("check3"));
+
+
+            CheckBox btn = new CheckBox()
+            {
+                Content="123"
+            };
+            DataContext = btn;
+
             _toggleSwitch.IsVisible = false;
 
             UpdateDevices(); //Обновляем все доступные устройства для ввода
@@ -96,6 +116,27 @@ namespace NoisePower.Views
         public void OnHideClick(object sender, RoutedEventArgs e)
         {
             this.Hide();
+        }
+
+        public void OnOptionsClick(object sender, RoutedEventArgs e)
+        {
+            _options.IsVisible = false;
+            _splitView.IsPaneOpen = true;
+            _optionsText.IsVisible = true;
+            foreach (CheckBox check in _checkBoxes)
+            {
+                check.IsVisible = true;
+            }
+        }
+
+        public void OnOptionsHide(object sender, SplitViewPaneClosingEventArgs e)
+        {
+            _optionsText.IsVisible = false;
+            _options.IsVisible = true;
+            foreach (CheckBox check in _checkBoxes)
+            {
+                check.IsVisible = false;
+            }
         }
 
         public void OnUpdateClick(object sender, RoutedEventArgs e)
@@ -173,14 +214,18 @@ namespace NoisePower.Views
         public void ShowToggle(object sender, SelectionChangedEventArgs e)
         {
             _toggleSwitch.IsVisible = true;
+            _splitView.CompactPaneLength = 68;
+
         }
         public void EnableRecordToggle(object sender, RoutedEventArgs e)
         {
             StartRecord();
+            _splitView.CompactPaneLength = 0;
         }
         public void DisableRecordToggle(object sender, RoutedEventArgs e)
         {
             StopRecord();
+            _splitView.CompactPaneLength = 68;
         }
         #endregion
 
@@ -217,7 +262,7 @@ namespace NoisePower.Views
         /// </summary>
         private MMDevice VACDevice()
         {
-            if(outDevice != null)
+            if (outDevice != null)
             {
                 return outDevice;
             }
@@ -235,36 +280,79 @@ namespace NoisePower.Views
 
         private void StartRecord()
         {
+            #region Variables
             _listBox.IsVisible = false;
             _mainText.Text = $"Все работает. Звук передается в VAC.";
             capture = new WasapiCapture(enumerator.GetDevice(_deviceIDs[_listBox.SelectedIndex]));
+
+            bool transformatorSound = _checkBoxes[3].IsChecked.Value;
+            bool tearAudio = _checkBoxes[0].IsChecked.Value;
+            bool popcornAudio = _checkBoxes[1].IsChecked.Value;
+            bool nextAndBeforeEffectCheckbox = _checkBoxes[2].IsChecked.Value;
+            bool nextAndBeforeEffect = true;
+
             capture.StartRecording();
             Random random = new Random();
+
 
             byte[] waveFile = File.ReadAllBytes("SOUNDS\\TRANS.wav");
 
             var transStream = bufferToWave(waveFile, 0, 19200, new WaveFormat(48000, 16, 1));
+            #endregion
 
+
+
+            #region Capture
             capture.DataAvailable += (s, a) => // Выполняется как дата от микрофона готова
             {
                 MMDevice outDevice = VACDevice(); // Наш девайс
 
-                    using (WaveStream ws = bufferToWave(a.Buffer, 0, a.BytesRecorded, capture.WaveFormat))
+                if (tearAudio)
+                    Thread.Sleep(random.Next(0, 100));
+
+                if(popcornAudio)
+                {
+                    for (int i = 0; i < 100; i++)
                     {
-                        using (WasapiOut output = new WasapiOut(outDevice, AudioClientShareMode.Shared, false, 0))
+                        a.Buffer[i] = Convert.ToByte(random.Next(0, 254));
+                    }
+                }
+
+                using (WaveStream ws = bufferToWave(a.Buffer, 0, a.BytesRecorded, capture.WaveFormat))
+                {
+                    using (WasapiOut output = new WasapiOut(outDevice, AudioClientShareMode.Shared, false, 0))
+                    {
+                        if(nextAndBeforeEffectCheckbox) // Если функция эффекта вперед назад нужна
+                            nextAndBeforeEffect = !nextAndBeforeEffect;
+
+                        if (nextAndBeforeEffect)
                         {
-                            //waveMixerStream.AddInputStream(ws);
                             ws.Position = 0;
                             transStream.Position = 0;
-                            
-                            var mixer = new MixingSampleProvider(new[] { ws.ToSampleProvider(), transStream.ToSampleProvider()});
+                            var mixer = new MixingSampleProvider(new[] { ws.ToSampleProvider() });
+                            if (transformatorSound)
+                                mixer.AddMixerInput(transStream);
                             Thread playTH = new Thread(new ParameterizedThreadStart(Play));
                             playTH.Start(mixer);
                         }
+                        else
+                        {
+                            using (WaveStream nws = bufferToWave(reverseSample(a.Buffer, a.BytesRecorded, capture.WaveFormat.BitsPerSample), 0, a.BytesRecorded, capture.WaveFormat))
+                            {
+                                nws.Position = 0;
+                                transStream.Position = 0;
+                                var mixer = new MixingSampleProvider(new[] { nws.ToSampleProvider() });
+                                if (transformatorSound)
+                                    mixer.AddMixerInput(transStream);
+                                Thread playTH = new Thread(new ParameterizedThreadStart(Play));
+                                playTH.Start(mixer);
+                            }
+                        }
                     }
-                
-            };
+                }
 
+            };
+            #endregion
         }
 
         public void Play(object provider) // Поток играет
@@ -277,7 +365,7 @@ namespace NoisePower.Views
             }
         }
 
-        
+
         private void StopRecord()
         {
             _listBox.IsVisible = true;
@@ -304,6 +392,46 @@ namespace NoisePower.Views
             WaveStream ws = new RawSourceWaveStream(ms, format);
             ws.Position = 0;
             return ws;
+        }
+
+        public byte[] reverseSample(byte[] sampleToReverse, int SourceLengthBytes, int bytesPerSample)
+        {
+            // Length of the buffer
+            int numOfBytes;
+
+            // The byte array to store the reversed sample
+            byte[] reversedSample;
+
+            numOfBytes = SourceLengthBytes;
+
+            // Set the byte array to the length of the source sample
+            reversedSample = new byte[SourceLengthBytes];
+
+            // The alternatve location; starts at the end and works to the begining
+            int b = 0;
+
+            //Prime the loop by 'reducing' the numOfBytes by the first increment for the first sample
+            numOfBytes = numOfBytes - bytesPerSample;
+
+            // Used for the imbeded loop to move the complete sample
+            int q = 0;
+
+            // Moves through the stream based on each sample
+            for (int i = 0; i < numOfBytes - bytesPerSample; i = i + bytesPerSample)
+            {
+                // Effectively a mirroing process; b will equal i (or be out by one if its an equal buffer)
+                // when the middle of the buffer is reached.
+                b = numOfBytes - bytesPerSample - i;
+
+                // Copies the 'sample' in whole to the opposite end of the reversedSample
+                for (q = 0; q <= bytesPerSample; q++)
+                {
+                    reversedSample[b + q] = sampleToReverse[i + q];
+                }
+            }
+
+            // Sends back the reversed stream
+            return reversedSample;
         }
         #endregion
     }
